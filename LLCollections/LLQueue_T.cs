@@ -15,6 +15,12 @@
             _storage = new LinkedList<T>(collection);
         }
 
+        protected LLQueue(LLQueue<T> queue)
+        {
+            _storage = queue._storage;
+            _syncRoot = queue._syncRoot;
+        }
+
         [Obsolete("For compatibility purposes only! Use the empty constructor instead")]
         public LLQueue(int capacity) : this()
         {
@@ -28,7 +34,6 @@
         public object SyncRoot => _syncRoot;
 
         public void CopyTo(T[] array, int arrayIndex) => _storage.CopyTo(array, arrayIndex);
-        
 
         void ICollection.CopyTo(Array array, int index)
         {
@@ -67,9 +72,6 @@
             }
         }
 
-        //
-        // Summary:
-        //     Removes all objects from the System.Collections.Generic.Queue`1.
         public void Clear() => _storage.Clear();
         //
         // Summary:
@@ -104,6 +106,7 @@
             _storage.RemoveFirst();
             return item;
         }
+
         //
         // Summary:
         //     Adds an object to the end of the System.Collections.Generic.Queue`1.
@@ -178,6 +181,7 @@
                 return false;
             }
         }
+
         //
         // Summary:
         //     Returns a value that indicates whether there is an object at the beginning of
@@ -206,17 +210,55 @@
             }
         }
 
-
-
-        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
-
-
         //
         // Summary:
         //     Returns an enumerator that iterates through the System.Collections.Generic.Queue`1.
         //
         // Returns:
         //     An System.Collections.Generic.Queue`1.Enumerator for the System.Collections.Generic.Queue`1.
-        public IEnumerator<T> GetEnumerator() => _storage.GetEnumerator();
+        public  virtual IEnumerator<T> GetEnumerator() => _storage.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
+
+        public LLQueueForEachDequeue<T> AsForeachDequeue() => new LLQueueForEachDequeue<T>(this);
+
+       
+    }
+
+    public class LLQueueForEachDequeue<T> : LLQueue<T>
+    {
+        public LLQueueForEachDequeue(LLQueue<T> queue) : base(queue)
+        {
+        }
+
+ 
+        public class LLQueueForEachDequeueEnumerator : IEnumerator<T>
+        {
+            private readonly LLQueue<T> queue;
+
+            public LLQueueForEachDequeueEnumerator(LLQueue<T> queue)
+            {
+                this.queue = queue;
+            }
+
+            public T Current => queue.Peek();
+
+#pragma warning disable CS8603 // Possible null reference return.
+            object IEnumerator.Current => queue.Peek();
+#pragma warning restore CS8603 // Possible null reference return.
+
+            public void Dispose()
+            {
+            }
+
+            public bool MoveNext() => queue.TryDequeue(out _);
+
+
+            public void Reset()
+            {
+
+            }
+        }
+        public override IEnumerator<T> GetEnumerator() => new LLQueueForEachDequeueEnumerator(this);
+
     }
 }
