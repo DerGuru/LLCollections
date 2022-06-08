@@ -4,7 +4,7 @@
     {
         private readonly LinkedList<T> _storage;
         private readonly object _syncRoot = new object();
-       
+
         public LLQueue()
         {
             _storage = new LinkedList<T>();
@@ -66,9 +66,9 @@
             {
                 Array.Copy(_storage.ToArray(), 0, array, index, numToCopy);
             }
-            catch (ArrayTypeMismatchException)
+            catch (ArrayTypeMismatchException ex)
             {
-                throw new ArgumentException($"Types of {typeof(T)} and {array.GetType()} do not match");
+                throw new ArgumentException($"Types of {typeof(T).FullName} and {array.GetType().FullName} do not match", ex);
             }
         }
 
@@ -216,12 +216,12 @@
         //
         // Returns:
         //     An System.Collections.Generic.Queue`1.Enumerator for the System.Collections.Generic.Queue`1.
-        public  virtual IEnumerator<T> GetEnumerator() => _storage.GetEnumerator();
+        public virtual IEnumerator<T> GetEnumerator() => _storage.GetEnumerator();
         IEnumerator IEnumerable.GetEnumerator() => this.GetEnumerator();
 
         public LLQueueForEachDequeue<T> AsForeachDequeue() => new LLQueueForEachDequeue<T>(this);
 
-       
+
     }
 
     public class LLQueueForEachDequeue<T> : LLQueue<T>
@@ -230,27 +230,29 @@
         {
         }
 
- 
+
         public class LLQueueForEachDequeueEnumerator : IEnumerator<T>
         {
             private readonly LLQueue<T> queue;
-
+            
             public LLQueueForEachDequeueEnumerator(LLQueue<T> queue)
             {
                 this.queue = queue;
             }
 
-            public T Current => queue.Peek();
 
-#pragma warning disable CS8603 // Possible null reference return.
-            object IEnumerator.Current => queue.Peek();
-#pragma warning restore CS8603 // Possible null reference return.
+            private T _current = default(T);
+            public T Current => _current;
+
+
+            object IEnumerator.Current => _current;
+
 
             public void Dispose()
             {
             }
 
-            public bool MoveNext() => queue.TryDequeue(out _);
+            public bool MoveNext() => queue.TryDequeue(out _current);
 
 
             public void Reset()

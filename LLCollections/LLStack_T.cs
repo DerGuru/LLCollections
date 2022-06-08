@@ -11,7 +11,7 @@
 
         public LLStack(IEnumerable<T> collection)
         {
-            _storage = new LinkedList<T>(collection);
+            _storage = new LinkedList<T>(collection.Reverse());
         }
 
         protected LLStack(LLStack<T> queue)
@@ -239,17 +239,16 @@
                 this.queue = queue;
             }
 
-            public T Current => queue.Peek();
+            private T _current = default;
+            public T Current => _current;
 
-#pragma warning disable CS8603 // Possible null reference return.
-            object IEnumerator.Current => queue.Peek();
-#pragma warning restore CS8603 // Possible null reference return.
+            object IEnumerator.Current => _current;
 
             public void Dispose()
             {
             }
 
-            public bool MoveNext() => queue.TryPop(out _);
+            public bool MoveNext() => queue.TryPop(out _current);
 
 
             public void Reset()
